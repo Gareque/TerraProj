@@ -63,10 +63,9 @@ resource "aws_instance" "project_server" {
   ami = "ami-008ea0202116dbc56"
   instance_type = var.instance_type
   count = var.ec2_instance_count
+  subnet_id = aws_subnet.public_subnet.id
 
- /* security_groups = [
-    "${aws_security_group.security.id}",
-  ] */
+ security_groups = [aws_security_group.security.id]
 
   tags = {
     Name = "Project Server"
@@ -121,7 +120,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_tls_ipv4" {
   ip_protocol = "-1"
 }
 
-/* resource "aws_security_group" "security" {
+resource "aws_security_group" "security" {
   name = "allow-all"
 
   vpc_id = aws_vpc.main.id
@@ -135,13 +134,22 @@ resource "aws_vpc_security_group_egress_rule" "allow_tls_ipv4" {
     protocol    = "tcp"
   }
 
+  ingress {
+    cidr_blocks = [
+        "0.0.0.0/0"
+    ]
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = -1
     cidr_blocks  = ["0.0.0.0/10"]
   }
-} */
+}
 
 /*Load Balancers
 resource "aws_lb_target_group" "lb_tg_a" {
