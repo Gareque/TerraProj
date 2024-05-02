@@ -13,7 +13,6 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public_subnet" {
   vpc_id = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
-  count = var.public_subnet_count
   map_public_ip_on_launch = true
 
 
@@ -22,8 +21,29 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_route_table" "public_subnet" {
+  vpc_id = aws_vpc.main.id
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.gw.id
+    }
+}
+
+resource "aws_route_table_association" "public_subnet" {
+  subnet_id = aws_subnet.public_subnet.id
+  route_table_id = aws_route_table.public_subnet.id
+}
+
 resource "aws_network_interface" "multi" {
-    subnet_id = aws_subnet.public_subnet[0].id
+    subnet_id = aws_subnet.public_subnet.id
     private_ips = ["10.0.1.5", "10.0.1.6"]
 }
 
